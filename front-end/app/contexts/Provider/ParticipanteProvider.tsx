@@ -4,6 +4,7 @@ import { useState } from "react";
 import useContexts, { DadosParticipante } from "../Context";
 import axios from "axios";
 import { useDadosUsuarioContext } from "../useContext";
+import { linkBackEnd } from "./UsuarioProvider";
 
 export const ParticipanteProvider = ({
   children,
@@ -18,7 +19,7 @@ export const ParticipanteProvider = ({
   const cadastroParticipante = async (dadosParticipante: DadosParticipante) => {
     try {
       let response;
-      const url = "http://localhost:5000/participantes/";
+      const url = `${linkBackEnd}/participantes/`;
 
       response = await axios.post(url, dadosParticipante);
 
@@ -41,7 +42,7 @@ export const ParticipanteProvider = ({
 
   const fimDeJogo = async (id: number, dtSaida: string) => {
     try {
-      const url = `http://localhost:5000/participantes/`;
+      const url = `${linkBackEnd}/participantes/`;
 
       const response = await axios.patch(url, {
         id: id,

@@ -29,24 +29,26 @@ const SectionEstilizada = styled.section`
 export default function Sobre() {
   return (
     <PaginaBase>
-      <CampoInicial
-        titulo="Sobre o FIPPTruco"
-        subTitulo="A melhor experiência de truco online"
-      />
-
-      <NossaHistoria />
-
-      <SectionEstilizada>
-        <CampoValores
-          titulo="Nossa Missão"
-          texto="Proporcionar a melhor experiência de truco online, conectando jogadores de todo o Brasil em um ambiente seguro e divertido, preservando a essência do jogo tradicional."
-          tipo="Missão"
+      <main>
+        <CampoInicial
+          titulo="Sobre o FIPPTruco"
+          subTitulo="A melhor experiência de truco online"
         />
 
-        <CampoValores titulo="Nossos Valores" tipo="Valores" />
-      </SectionEstilizada>
+        <NossaHistoria />
 
-      <JogueAgora />
+        <SectionEstilizada>
+          <CampoValores
+            titulo="Nossa Missão"
+            texto="Proporcionar a melhor experiência de truco online, conectando jogadores de todo o Brasil em um ambiente seguro e divertido, preservando a essência do jogo tradicional."
+            tipo="Missão"
+          />
+
+          <CampoValores titulo="Nossos Valores" tipo="Valores" />
+        </SectionEstilizada>
+
+        <JogueAgora />
+      </main>
     </PaginaBase>
   );
 }

@@ -6,6 +6,8 @@ import { DadosUsuario } from "../Context";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
+export const linkBackEnd = "https://projeto-truco.onrender.com";
+
 export const UsuarioProvider = ({
   children,
 }: {
@@ -29,7 +31,7 @@ export const UsuarioProvider = ({
         const obterDadosUsuario = async () => {
           try {
             console.log("Buscando dados do usuário...");
-            const response = await axios.get("http://localhost:5000/usuarios", {
+            const response = await axios.get(`${linkBackEnd}/usuarios/`, {
               withCredentials: true,
               headers: {
                 Authorization: `Bearer ${tokenValue}`,
@@ -72,8 +74,8 @@ export const UsuarioProvider = ({
 
       const url =
         tipo === "Cadastrar"
-          ? "http://localhost:5000/usuarios/"
-          : "http://localhost:5000/auth/token";
+          ? `${linkBackEnd}/usuarios/`
+          : `${linkBackEnd}/auth/token`;
 
       response = await axios.post(url, dados);
 
@@ -111,7 +113,7 @@ export const UsuarioProvider = ({
     setMensagemErro(null);
 
     try {
-      const url = "http://localhost:5000/usuarios/";
+      const url = `${linkBackEnd}/usuarios/`;
       const response =
         tipo == "TodosDados"
           ? await axios.put(url, dados)

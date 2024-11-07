@@ -4,7 +4,7 @@ import Formulario from "@/app/components/Formulario";
 import PaginaBase from "@/app/pageBase";
 import styled from "styled-components";
 
-export const MainEstilizado = styled.main`
+const MainEstilizado = styled.main`
   height: 100vh;
   background-color: #1a1a1a;
   background-image: radial-gradient(

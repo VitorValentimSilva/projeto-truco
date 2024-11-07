@@ -5,6 +5,7 @@ import useContexts, { DadosJogo } from "../Context";
 import axios from "axios";
 import { useDadosUsuarioContext } from "../useContext";
 import { useRouter } from "next/navigation";
+import { linkBackEnd } from "./UsuarioProvider";
 
 export const JogoProvider = ({ children }: { children: React.ReactNode }) => {
   const [jogos, setJogos] = useState<DadosJogo | null>(null);
@@ -15,7 +16,7 @@ export const JogoProvider = ({ children }: { children: React.ReactNode }) => {
   const cadastroJogo = async (dadosJogo: DadosJogo) => {
     try {
       let response;
-      const url = "http://localhost:5000/jogos/";
+      const url = `${linkBackEnd}/jogos/`;
 
       response = await axios.post(url, dadosJogo);
 
@@ -41,7 +42,7 @@ export const JogoProvider = ({ children }: { children: React.ReactNode }) => {
 
   const sairDoJogo = async (id: number, dtFim: string) => {
     try {
-      const url = `http://localhost:5000/jogos/`;
+      const url = `${linkBackEnd}/jogos/`;
 
       const response = await axios.patch(url, {
         id: id,

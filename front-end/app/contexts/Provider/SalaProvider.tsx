@@ -5,6 +5,7 @@ import useContexts, { DadosSala } from "../Context";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useDadosUsuarioContext } from "../useContext";
+import { linkBackEnd } from "./UsuarioProvider";
 
 export const SalaProvider = ({ children }: { children: React.ReactNode }) => {
   const [salas, setSalas] = useState<DadosSala[] | null>(null);
@@ -16,7 +17,7 @@ export const SalaProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       let response;
 
-      const url = "http://localhost:5000/salas/";
+      const url = `${linkBackEnd}/salas/`;
 
       response = await axios.post(url, dados);
 
@@ -39,7 +40,7 @@ export const SalaProvider = ({ children }: { children: React.ReactNode }) => {
 
   const todasSalas = async () => {
     try {
-      const url = "http://localhost:5000/salas/";
+      const url = `${linkBackEnd}/salas/`;
       const response = await axios.get(url);
 
       console.log("Todas as salas:", response.data);
