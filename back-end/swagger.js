@@ -3,6 +3,7 @@ import UsuarioEntity from "./entities/usuarioEntity.js";
 import SalaEntity from "./entities/salaEntity.js";
 import JogoEntity from "./entities/jogoEntity.js";
 import ParticipanteEntity from "./entities/participanteEntity.js";
+import MaoEntity from "./entities/maoEntity.js";
 
 const doc = {
   info: {
@@ -33,6 +34,15 @@ const doc = {
         1,
         3
       ).toJSON(),
+      maoModel: new MaoEntity(
+        0,
+        1,
+        123,
+        "N",
+        10,
+        1,
+        3
+      ).toJSON()
     },
     securitySchemes: {
       bearerAuth: {

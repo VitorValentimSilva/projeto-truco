@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Card } from "../CampoJogo";
 
@@ -16,45 +15,37 @@ const DivEstilizada = styled.div`
   img {
     width: 200px;
     height: 270px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  img:hover {
+    transform: scale(1.1);
   }
 `;
 
 interface CampoCartasJogadorProps {
-  criarDeck: () => Promise<string>;
-  comprarCartas: (deckId: string, count: number) => Promise<Card[]>;
+  cartas: Card[];
+  onJogarCarta: (carta: Card) => void;
 }
 
 export default function CampoCartasJogador({
-  criarDeck,
-  comprarCartas,
+  cartas,
+  onJogarCarta,
 }: CampoCartasJogadorProps): JSX.Element {
-  const [cartas, setCartas] = useState<Card[]>([]);
-  const [carregando, setCarregando] = useState<boolean>(true);
-
-  useEffect(() => {
-    const cartasDoJogador = async () => {
-      try {
-        const deckId = await criarDeck();
-        const comprarCarta = await comprarCartas(deckId, 3);
-        setCartas(comprarCarta);
-        setCarregando(false);
-      } catch (error) {
-        console.error("Erro ao buscar as cartas: ", error);
-      }
-    };
-
-    cartasDoJogador();
-  }, [criarDeck, comprarCartas]);
-
   return (
     <DivEstilizada>
-      {carregando ? (
-        <p>Carregando suas cartas...</p>
+      {cartas.length === 0 ? (
+        <p>Você não possui cartas!</p>
       ) : (
         <>
           {cartas.map((carta) => (
             <div key={carta.code} className="carta">
-              <img src={carta.image} alt={`${carta.value} of ${carta.suit}`} />
+              <img
+                src={carta.image}
+                alt={`${carta.value} of ${carta.suit}`}
+                onClick={() => onJogarCarta(carta)}
+              />
             </div>
           ))}
         </>

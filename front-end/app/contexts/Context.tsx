@@ -92,6 +92,22 @@ interface SalaJogoType {
   setIsSalaJogo: (valor: boolean) => void;
 }
 
+export interface DadosMao {
+  id?: number;
+  ordem?: number;
+  codigoBaralho?: string;
+  trucada?: string;
+  valor?: number;
+  jogoId?: number;
+  equipeVencedora?: number;
+}
+
+interface DadosMaoType {
+  maos: DadosMao | null;
+  setMaos: (maos: DadosMao | null) => void;
+  cadastroMao: (dados: DadosMao) => Promise<void>;
+}
+
 const DadosUsuarioContext = createContext<DadosUsuarioType>({
   usuario: null,
   setUsuario: () => {},
@@ -144,6 +160,12 @@ const SalaJogoContext = createContext<SalaJogoType>({
   setIsSalaJogo: () => {},
 });
 
+const DadosMaoContext = createContext<DadosMaoType>({
+  maos: null,
+  setMaos: () => {},
+  cadastroMao: async () => {},
+});
+
 DadosUsuarioContext.displayName = "DadosUsuario";
 AutenticacaoContext.displayName = "Autenticacao";
 DadosSalaContext.displayName = "DadosSala";
@@ -151,6 +173,7 @@ DadosEquipeContext.displayName = "DadosEquipe";
 DadosJogoContext.displayName = "DadosJogo";
 DadosParticipanteContext.displayName = "DadosParticipante";
 SalaJogoContext.displayName = "SalaJogos";
+DadosMaoContext.displayName = "DadosMao";
 
 const Contexts = {
   DadosUsuarioContext,
@@ -160,6 +183,7 @@ const Contexts = {
   DadosJogoContext,
   DadosParticipanteContext,
   SalaJogoContext,
+  DadosMaoContext,
 };
 
 export default Contexts;

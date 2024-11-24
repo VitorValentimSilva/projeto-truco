@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import styled from "styled-components";
 import { Card } from "../CampoJogo";
+import styled from "styled-components";
 
 const DivEstilizada = styled.div`
   display: flex;
@@ -21,50 +20,42 @@ const DivEstilizada = styled.div`
 `;
 
 interface CampoCartasJogoProps {
-  criarDeck: () => Promise<string>;
-  comprarCartas: (deckId: string, count: number) => Promise<Card[]>;
+  cartaVira: Card | null;
+  cartasJogadas: Card[];
 }
 
 export default function CampoCartasJogo({
-  criarDeck,
-  comprarCartas,
+  cartaVira,
+  cartasJogadas,
 }: CampoCartasJogoProps): JSX.Element {
-  const [deckId, setDeckId] = useState<string | null>(null);
-  const [vira, setVira] = useState<Card | null>(null);
-  const [carregando, setCarregando] = useState<boolean>(true);
-
-  useEffect(() => {
-    const sortearVira = async () => {
-      try {
-        const novoDeckId = await criarDeck();
-        setDeckId(novoDeckId);
-
-        const [cartaVira] = await comprarCartas(novoDeckId, 1);
-        setVira(cartaVira);
-
-        setCarregando(false);
-      } catch (error) {
-        console.error("Erro ao sortear a vira: ", error);
-      }
-    };
-
-    sortearVira();
-  }, [criarDeck, comprarCartas]);
-
   return (
     <DivEstilizada>
-      {carregando ? (
-        <p>Carregando a vira...</p>
+      {cartaVira ? (
+        <div>
+          <p>Vira</p>
+          <img
+            src={cartaVira.image}
+            alt={`${cartaVira.value} de ${cartaVira.suit}`}
+          />
+        </div>
       ) : (
-        <>
-          {vira && (
-            <div>
-              <p>Vira</p>
-              <img src={vira.image} alt={`${vira.value} de ${vira.suit}`} />
-            </div>
-          )}
-        </>
+        <p>Carregando a vira...</p>
       )}
+
+      <div>
+        <p>Cartas Jogadas:</p>
+        {cartasJogadas.length > 0 ? (
+          cartasJogadas.map((carta, index) => (
+            <img
+              key={index}
+              src={carta.image}
+              alt={`${carta.value} de ${carta.suit}`}
+            />
+          ))
+        ) : (
+          <p>Nenhuma carta jogada ainda.</p>
+        )}
+      </div>
     </DivEstilizada>
   );
 }

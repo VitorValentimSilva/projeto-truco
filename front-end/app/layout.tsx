@@ -5,6 +5,7 @@ import { SalaProvider } from "./contexts/Provider/SalaProvider";
 import { EquipeProvider } from "./contexts/Provider/EquipeProvider";
 import { JogoProvider } from "./contexts/Provider/JogoProvider";
 import { ParticipanteProvider } from "./contexts/Provider/ParticipanteProvider";
+import { MaoProvider } from "./contexts/Provider/MaoProvider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -23,7 +24,9 @@ export default function RootLayout({
           <SalaProvider>
             <EquipeProvider>
               <ParticipanteProvider>
-                <JogoProvider>{children}</JogoProvider>
+                <JogoProvider>
+                  <MaoProvider>{children}</MaoProvider>
+                </JogoProvider>
               </ParticipanteProvider>
             </EquipeProvider>
           </SalaProvider>

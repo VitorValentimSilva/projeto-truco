@@ -542,6 +542,69 @@
           }
         }
       }
+    },
+    "/maos/{id}": {
+      "get": {
+        "tags": [
+          "Mão"
+        ],
+        "summary": "Retorna uma mão baseado em um código",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/maos/": {
+      "post": {
+        "tags": [
+          "Mão"
+        ],
+        "summary": "Cadastra uma mão",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/maoModel"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -629,6 +692,39 @@
             "example": 1
           },
           "equipeId": {
+            "type": "number",
+            "example": 3
+          }
+        }
+      },
+      "maoModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 0
+          },
+          "ordem": {
+            "type": "number",
+            "example": 1
+          },
+          "codigoBaralho": {
+            "type": "number",
+            "example": 123
+          },
+          "trucada": {
+            "type": "string",
+            "example": "N"
+          },
+          "valor": {
+            "type": "number",
+            "example": 10
+          },
+          "jogoId": {
+            "type": "number",
+            "example": 1
+          },
+          "equipeVencedora": {
             "type": "number",
             "example": 3
           }
