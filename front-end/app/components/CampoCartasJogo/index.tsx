@@ -34,7 +34,7 @@ export default function CampoCartasJogo({
         <div>
           <p>Vira</p>
           <img
-            src={cartaVira.image}
+            src={cartaVira.image || "/path/to/default/image.jpg"} // Adiciona fallback
             alt={`${cartaVira.value} de ${cartaVira.suit}`}
           />
         </div>
@@ -48,7 +48,7 @@ export default function CampoCartasJogo({
           cartasJogadas.map((carta, index) => (
             <img
               key={index}
-              src={carta.image}
+              src={carta.image || "/path/to/default/image.jpg"} 
               alt={`${carta.value} de ${carta.suit}`}
             />
           ))

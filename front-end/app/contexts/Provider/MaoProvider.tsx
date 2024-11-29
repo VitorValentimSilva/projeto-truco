@@ -12,6 +12,7 @@ export const MaoProvider = ({ children }: { children: React.ReactNode }) => {
 
   const cadastroMao = async (dadosMao: DadosMao) => {
     try {
+      console.log(dadosMao)
       let response;
       const url = `${linkBackEnd}/maos/`;
 
@@ -19,7 +20,7 @@ export const MaoProvider = ({ children }: { children: React.ReactNode }) => {
 
       console.log("Dados enviados com sucesso:", response.data);
 
-      setMaos(response.data.maos);
+      setMaos(response.data.mao);
     } catch (error: unknown) {
       console.error("Erro:", error);
 

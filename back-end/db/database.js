@@ -18,8 +18,9 @@ export default class Database {
       user: "admin",
       password: "valentim123",
       waitForConnections: true,
-      connectionLimit: 10,
+      connectionLimit: 30,
       queueLimit: 0,
+      idleTimeout: 60000,
     });
   }
 

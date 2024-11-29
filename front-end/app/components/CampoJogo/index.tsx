@@ -3,7 +3,11 @@ import styled from "styled-components";
 import CampoJogador from "../CampoJogador";
 import CampoCartasJogo from "../CampoCartasJogo";
 import CampoCartasJogador from "../CampoCartasJogador";
-import { useDadosEquipeContext } from "@/app/contexts/useContext";
+import {
+  useDadosEquipeContext,
+  useDadosJogoContext,
+  useDadosMaoContext,
+} from "@/app/contexts/useContext";
 
 const SectionEstilizado = styled.section`
   background-color: #0d5c1d;
@@ -138,6 +142,36 @@ export default function CampoJogo() {
   const [resultadosTurno, setResultadosTurno] = useState<number[]>([]);
   const [vencedorRodada, setVencedorRodada] = useState<string | null>(null);
   const { equipe } = useDadosEquipeContext();
+  const { cadastroMao, setMaos } = useDadosMaoContext();
+  const { jogos } = useDadosJogoContext();
+  const [pontosEquipe1, setPontosEquipe1] = useState<number>(0);
+  const [pontosEquipe2, setPontosEquipe2] = useState<number>(0);
+  const [rodadaAtual, setRodadaAtual] = useState<number>(1);
+
+  const reiniciarRodada = async () => {
+    try {
+      if (!deckId) return;
+
+      setCartasJogadas([]);
+      setTurno(0);
+      setResultadosTurno([]);
+
+      const [novaVira] = await comprarCartas(deckId, 1);
+      setVira(novaVira);
+
+      const jogador = await comprarCartas(deckId, 3);
+      const bot1 = await comprarCartas(deckId, 3);
+      const bot2 = await comprarCartas(deckId, 3);
+      const bot3 = await comprarCartas(deckId, 3);
+
+      setJogadorCartas(jogador);
+      setBot1Cartas(bot1);
+      setBot2Cartas(bot2);
+      setBot3Cartas(bot3);
+    } catch (error) {
+      console.error("Erro ao reiniciar a rodada: ", error);
+    }
+  };
 
   useEffect(() => {
     const inicializarJogo = async () => {
@@ -173,10 +207,12 @@ export default function CampoJogo() {
     botCartas: Card[],
     setBotCartas: React.Dispatch<React.SetStateAction<Card[]>>
   ) => {
+    if (botCartas.length === 0) return;
+
     const cartaSelecionada = botCartas[0];
     setBotCartas((prev) => prev.slice(1));
     jogarCarta(cartaSelecionada);
-    setTurno((prev) => (prev + 1) % 4);
+    setTurno((prev) => (prev === 3 ? 0 : prev + 1));
   };
 
   useEffect(() => {
@@ -185,29 +221,32 @@ export default function CampoJogo() {
         if (turno === 1) botJogarCarta(bot1Cartas, setBot1Cartas);
         else if (turno === 2) botJogarCarta(bot2Cartas, setBot2Cartas);
         else if (turno === 3) botJogarCarta(bot3Cartas, setBot3Cartas);
-      }, 2000);
+      }, 4000);
 
       return () => clearTimeout(delay);
     }
   }, [turno]);
 
-  const handleJogarCarta = (carta: Card) => {
+  const handleJogarCarta = (carta: Card): void => {
     if (turno !== 0) return;
     setJogadorCartas((prev) => prev.filter((c) => c.code !== carta.code));
     jogarCarta(carta);
     setTurno(1);
   };
 
-  const getManilhaValue = (vira: string) => {
-    const index = HIERARQUIA.indexOf(vira);
-    return index >= 0 ? HIERARQUIA[(index + 1) % HIERARQUIA.length] : null;
+  const getManilhaValue = (vira: Card | null): string | null => {
+    if (!vira) return null;
+    const index = HIERARQUIA.indexOf(vira.value);
+    if (index === -1) return null;
+    return HIERARQUIA[(index + 1) % HIERARQUIA.length];
   };
 
   const determinarVencedorTurno = (
     cartasJogadas: Card[],
     vira: Card | null
-  ) => {
-    const manilha = vira ? getManilhaValue(vira.value) : null;
+  ): number => {
+    const manilha = vira ? getManilhaValue(vira) : null;
+
     let vencedorIndex = 0;
     let cartaMaisForte = cartasJogadas[0];
 
@@ -215,47 +254,69 @@ export default function CampoJogo() {
       const isManilhaAtual = carta.value === manilha;
       const isManilhaMaisForte = cartaMaisForte.value === manilha;
 
-      if (
-        (isManilhaAtual && !isManilhaMaisForte) ||
-        (!isManilhaAtual &&
-          !isManilhaMaisForte &&
-          HIERARQUIA.indexOf(carta.value) >
-            HIERARQUIA.indexOf(cartaMaisForte.value))
-      ) {
+      if (isManilhaAtual && !isManilhaMaisForte) {
         cartaMaisForte = carta;
         vencedorIndex = index;
+      } else if (
+        (!isManilhaAtual && !isManilhaMaisForte) ||
+        (isManilhaAtual && isManilhaMaisForte)
+      ) {
+        if (
+          HIERARQUIA.indexOf(carta.value) >
+          HIERARQUIA.indexOf(cartaMaisForte.value)
+        ) {
+          cartaMaisForte = carta;
+          vencedorIndex = index;
+        }
       }
     });
 
+    setResultadosTurno((prev) => [...prev, vencedorIndex]);
     return vencedorIndex;
   };
 
   useEffect(() => {
     if (cartasJogadas.length === 4 && vira) {
       const vencedorTurno = determinarVencedorTurno(cartasJogadas, vira);
-      setResultadosTurno((prev) => [...prev, vencedorTurno]);
 
       const delay = setTimeout(() => {
-        setTurno(vencedorTurno);
-        setCartasJogadas([]);
+        if (
+          jogadorCartas.length === 0 &&
+          bot1Cartas.length === 0 &&
+          bot2Cartas.length === 0 &&
+          bot3Cartas.length === 0
+        ) {
+          setRodadaAtual((prev) => prev + 1);
 
-        const equipe1Turnos = resultadosTurno.filter(
-          (res) => res === 0 || res === 2
-        ).length;
-        const equipe2Turnos = resultadosTurno.filter(
-          (res) => res === 1 || res === 3
-        ).length;
+          const ordem = 1;
+          const trucada = "N";
 
-        if (equipe1Turnos === 2) {
-          setVencedorRodada("Equipe 1");
-        } else if (equipe2Turnos === 2) {
-          setVencedorRodada("Equipe 2");
+          const jogoId = jogos?.id;
+          const equipeVencedora = 3;
+          const codigoBaralho = deckId ?? undefined;
+
+          const dadosMao = {
+            ordem,
+            codigoBaralho,
+            trucada,
+            valor: 1,
+            jogoId,
+            equipeVencedora,
+          };
+
+          cadastroMao(dadosMao);
+
+          reiniciarRodada();
+        } else {
+          setTurno(vencedorTurno);
         }
+
+        setCartasJogadas([]);
       }, 3000);
 
       return () => clearTimeout(delay);
     }
-  }, [cartasJogadas, vira]);
+  }, [cartasJogadas, vira, jogadorCartas, bot1Cartas, bot2Cartas, bot3Cartas]);
 
   return (
     <SectionEstilizado>
@@ -265,7 +326,7 @@ export default function CampoJogo() {
         </p>
 
         <div id="divValor">
-          <h4>Valor: 3</h4>
+          <h4>Valor: {rodadaAtual}</h4>
         </div>
 
         <p>
@@ -275,69 +336,43 @@ export default function CampoJogo() {
 
       <div id="divPrincipal">
         <div className="divsEstilizadas">
-          {equipe?.descricao === "Equipe 2" ? (
-            <>
-              <CampoJogador
-                numeroJogador="J3"
-                nomeJogador="Voce"
-                ativo={turno === 0}
-              />
-
-              <CampoJogador
-                numeroJogador="J4"
-                nomeJogador="Maria"
-                ativo={turno === 1}
-              />
-            </>
-          ) : (
-            <>
-              <CampoJogador
-                numeroJogador="J3"
-                nomeJogador="Murilo"
-                ativo={turno === 0}
-              />
-
-              <CampoJogador
-                numeroJogador="J4"
-                nomeJogador="Maria"
-                ativo={turno === 1}
-              />
-            </>
-          )}
+          <CampoJogador
+            numeroJogador="J1"
+            nomeJogador={equipe?.descricao === "Equipe 1" ? "Você" : "Pedro"}
+            ativo={
+              (turno === 0 && equipe?.descricao === "Equipe 1") ||
+              (turno === 1 && equipe?.descricao === "Equipe 2")
+            }
+          />
+          <CampoJogador
+            numeroJogador="J3"
+            nomeJogador={equipe?.descricao === "Equipe 1" ? "Pedro" : "Murilo"}
+            ativo={
+              (turno === 1 && equipe?.descricao === "Equipe 1") ||
+              (turno === 2 && equipe?.descricao === "Equipe 2")
+            }
+          />
         </div>
 
         <CampoCartasJogo cartaVira={vira} cartasJogadas={cartasJogadas} />
 
         <div className="divsEstilizadas">
-          {equipe?.descricao === "Equipe 1" ? (
-            <>
-              <CampoJogador
-                numeroJogador="J1"
-                nomeJogador="Voce"
-                ativo={turno === 0}
-              />
-
-              <CampoJogador
-                numeroJogador="J2"
-                nomeJogador="Pedro"
-                ativo={turno === 1}
-              />
-            </>
-          ) : (
-            <>
-              <CampoJogador
-                numeroJogador="J1"
-                nomeJogador="Murilo"
-                ativo={turno === 2}
-              />
-
-              <CampoJogador
-                numeroJogador="J2"
-                nomeJogador="Pedro"
-                ativo={turno === 3}
-              />
-            </>
-          )}
+          <CampoJogador
+            numeroJogador="J4"
+            nomeJogador={equipe?.descricao === "Equipe 2" ? "Você" : "Murilo"}
+            ativo={
+              (turno === 0 && equipe?.descricao === "Equipe 2") ||
+              (turno === 3 && equipe?.descricao === "Equipe 1")
+            }
+          />
+          <CampoJogador
+            numeroJogador="J2"
+            nomeJogador={equipe?.descricao === "Equipe 2" ? "Maria" : "Maria"}
+            ativo={
+              (turno === 3 && equipe?.descricao === "Equipe 2") ||
+              (turno === 2 && equipe?.descricao === "Equipe 1")
+            }
+          />
         </div>
       </div>
 

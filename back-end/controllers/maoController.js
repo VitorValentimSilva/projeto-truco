@@ -26,13 +26,11 @@ export default class MaoController {
         req.body;
 
       if (
-        ordem &&
-        codigoBaralho &&
-        trucada &&
-        valor &&
-        jogoId &&
+        ordem !== undefined &&
+        codigoBaralho !== undefined &&
+        trucada !== undefined &&
+        valor !== undefined &&
         jogoId > 0 &&
-        equipeVencedora &&
         equipeVencedora > 0
       ) {
         let jogoRepo = new JogoRepository();
