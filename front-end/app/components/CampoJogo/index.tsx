@@ -292,14 +292,14 @@ export default function CampoJogo() {
           ) : (
             <>
               <CampoJogador
-                numeroJogador="J1"
-                nomeJogador="Voce"
+                numeroJogador="J3"
+                nomeJogador="Murilo"
                 ativo={turno === 0}
               />
 
               <CampoJogador
-                numeroJogador="J2"
-                nomeJogador="Pedro"
+                numeroJogador="J4"
+                nomeJogador="Maria"
                 ativo={turno === 1}
               />
             </>
@@ -326,14 +326,14 @@ export default function CampoJogo() {
           ) : (
             <>
               <CampoJogador
-                numeroJogador="J3"
-                nomeJogador="Joao"
+                numeroJogador="J1"
+                nomeJogador="Murilo"
                 ativo={turno === 2}
               />
 
               <CampoJogador
-                numeroJogador="J4"
-                nomeJogador="Maria"
+                numeroJogador="J2"
+                nomeJogador="Pedro"
                 ativo={turno === 3}
               />
             </>

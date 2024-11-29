@@ -17,6 +17,9 @@ export default class Database {
       database: "projeto_truco",
       user: "admin",
       password: "valentim123",
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
     });
   }
 
