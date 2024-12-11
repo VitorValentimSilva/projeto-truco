@@ -7,7 +7,9 @@ import {
   useDadosEquipeContext,
   useDadosJogoContext,
   useDadosMaoContext,
+  useDadosParticipanteContext,
 } from "@/app/contexts/useContext";
+import { useRouter } from "next/navigation";
 
 const SectionEstilizado = styled.section`
   background-color: #0d5c1d;
@@ -41,6 +43,35 @@ const SectionEstilizado = styled.section`
 
   #divPrincipal {
     width: 100%;
+  }
+`;
+
+const BotaoTruco = styled.button`
+  background-color: #d97706;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #b85e04;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    background-color: #944c03;
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
   }
 `;
 
@@ -137,39 +168,167 @@ export default function CampoJogo() {
   const [bot1Cartas, setBot1Cartas] = useState<Card[]>([]);
   const [bot2Cartas, setBot2Cartas] = useState<Card[]>([]);
   const [bot3Cartas, setBot3Cartas] = useState<Card[]>([]);
-  const [turno, setTurno] = useState<number>(0);
+  const [turno, setTurno] = useState<number>(1);
+  const [jogadorAtual, setJogadorAtual] = useState<number>(0);
   const HIERARQUIA = ["4", "5", "6", "7", "Q", "J", "K", "A", "2", "3"];
   const [resultadosTurno, setResultadosTurno] = useState<number[]>([]);
   const [vencedorRodada, setVencedorRodada] = useState<string | null>(null);
   const { equipe } = useDadosEquipeContext();
-  const { cadastroMao, setMaos } = useDadosMaoContext();
-  const { jogos } = useDadosJogoContext();
+  const { cadastroMao, alterarMao, maos } = useDadosMaoContext();
   const [pontosEquipe1, setPontosEquipe1] = useState<number>(0);
   const [pontosEquipe2, setPontosEquipe2] = useState<number>(0);
-  const [rodadaAtual, setRodadaAtual] = useState<number>(1);
+  const [carregando, setCarregando] = useState(true);
+  const [trucoSolicitado, setTrucoSolicitado] = useState(false);
+  const [respostaTruco, setRespostaTruco] = useState<string | null>(null);
+  const [trucoResolvido, setTrucoResolvido] = useState(false);
+  const [pontoDaRodada, setPontoDaRodada] = useState<number>(1);
+  const [jogoTerminado, setJogoTerminado] = useState(false);
+  const [mensagemVitoria, setMensagemVitoria] = useState<string | null>(null);
+  const { sairDoJogo, jogos } = useDadosJogoContext();
+  const { fimDeJogo, participantes } = useDadosParticipanteContext();
+  const router = useRouter();
+
+  const sairDaPartida = async () => {
+    const dataAtual = new Date();
+    const dataAtualFormatada = dataAtual.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    if (jogos?.id && participantes?.id) {
+      await fimDeJogo(participantes?.id, dataAtualFormatada);
+      await sairDoJogo(jogos?.id, dataAtualFormatada);
+    } else {
+      console.log("Jogo ou Participante não encontrados!");
+    }
+
+    router.push("area-do-jogador");
+  };
+
+  const calcularVitorias = (resultadosTurno: number[]) => {
+    const equipe1Vitorias = resultadosTurno.filter(
+      (res) => res === 0 || res === 2
+    ).length;
+    const equipe2Vitorias = resultadosTurno.filter(
+      (res) => res === 1 || res === 3
+    ).length;
+    return { equipe1Vitorias, equipe2Vitorias };
+  };
+
+  const pedirTruco = () => {
+    if (jogadorAtual !== 0 || trucoSolicitado) return;
+    setTrucoSolicitado(true);
+
+    setTimeout(() => {
+      const aceitar = Math.random() < 0.5;
+      setRespostaTruco(aceitar ? "Aceito" : "Recusado");
+
+      if (!aceitar) {
+        console.log("Bot recusou o truco. Rodada encerrada.");
+        setPontosEquipe1((prev) => prev + 1);
+        reiniciarRodada();
+      } else {
+        console.log("Bot aceitou o truco. Valor da rodada aumenta para 3.");
+        setPontoDaRodada(3);
+
+        const dadosMao = {
+          id: maos?.id,
+          trucada: "S",
+        };
+
+        alterarMao(dadosMao);
+      }
+
+      setTrucoResolvido(true);
+    }, 2000);
+  };
+
+  const getCardValue = (card: Card): number => {
+    const faceValues: { [key: string]: number } = {
+      A: 8,
+      K: 7,
+      Q: 5,
+      J: 6,
+      7: 4,
+      6: 3,
+      5: 2,
+      4: 1,
+      3: 10,
+      2: 9,
+    };
+
+    return faceValues[card.value] || 0;
+  };
 
   const reiniciarRodada = async () => {
+    console.log("Reiniciando rodada...");
+
     try {
-      if (!deckId) return;
+      console.log("Criando um novo baralho...");
+      const novoDeckId = await criarDeck();
+      setDeckId(novoDeckId);
 
-      setCartasJogadas([]);
-      setTurno(0);
-      setResultadosTurno([]);
+      setTrucoSolicitado(false);
+      setRespostaTruco(null);
+      setTrucoResolvido(false);
 
-      const [novaVira] = await comprarCartas(deckId, 1);
+      const [novaVira] = await comprarCartas(novoDeckId, 1);
+      console.log("Nova Vira:", novaVira);
       setVira(novaVira);
 
-      const jogador = await comprarCartas(deckId, 3);
-      const bot1 = await comprarCartas(deckId, 3);
-      const bot2 = await comprarCartas(deckId, 3);
-      const bot3 = await comprarCartas(deckId, 3);
+      setCartasJogadas([]);
+      setResultadosTurno([]);
+      setTurno(1);
+      setPontoDaRodada(1);
+
+      console.log("Distribuindo novas cartas...");
+      const jogador = await comprarCartas(novoDeckId, 3);
+      const bot1 = await comprarCartas(novoDeckId, 3);
+      const bot2 = await comprarCartas(novoDeckId, 3);
+      const bot3 = await comprarCartas(novoDeckId, 3);
+
+      if (
+        jogador.length !== 3 ||
+        bot1.length !== 3 ||
+        bot2.length !== 3 ||
+        bot3.length !== 3
+      ) {
+        throw new Error("Erro na distribuição das cartas!");
+      }
 
       setJogadorCartas(jogador);
       setBot1Cartas(bot1);
       setBot2Cartas(bot2);
       setBot3Cartas(bot3);
+
+      console.log("Cartas distribuídas com sucesso!");
+
+      const { equipe1Vitorias, equipe2Vitorias } =
+        calcularVitorias(resultadosTurno);
+      const equipeVencedora = equipe1Vitorias > equipe2Vitorias ? 3 : 4;
+
+      console.log(
+        `Equipe vencedora da rodada: ${
+          equipeVencedora === 3 ? "Equipe 1" : "Equipe 2"
+        }`
+      );
+
+      const dadosMao = {
+        ordem: 1,
+        codigoBaralho: novoDeckId,
+        trucada: trucoSolicitado ? "S" : "N",
+        valor: jogador.reduce((acc, carta) => acc + getCardValue(carta), 0),
+        jogoId: jogos?.id || 0,
+        equipeVencedora,
+      };
+
+      await cadastroMao(dadosMao);
     } catch (error) {
-      console.error("Erro ao reiniciar a rodada: ", error);
+      console.error("Erro ao reiniciar rodada:", error);
     }
   };
 
@@ -193,6 +352,8 @@ export default function CampoJogo() {
         setBot3Cartas(bot3);
       } catch (error) {
         console.error("Erro ao inicializar o jogo: ", error);
+      } finally {
+        setCarregando(false);
       }
     };
 
@@ -201,37 +362,27 @@ export default function CampoJogo() {
 
   const jogarCarta = (carta: Card) => {
     setCartasJogadas((prev) => [...prev, carta]);
+    setJogadorAtual((prev) => (prev + 1) % 4);
   };
 
   const botJogarCarta = (
     botCartas: Card[],
     setBotCartas: React.Dispatch<React.SetStateAction<Card[]>>
   ) => {
-    if (botCartas.length === 0) return;
+    if (botCartas.length === 0) {
+      console.error("Bot não tem cartas para jogar!");
+      return;
+    }
 
     const cartaSelecionada = botCartas[0];
     setBotCartas((prev) => prev.slice(1));
     jogarCarta(cartaSelecionada);
-    setTurno((prev) => (prev === 3 ? 0 : prev + 1));
   };
 
-  useEffect(() => {
-    if (turno !== 0) {
-      const delay = setTimeout(() => {
-        if (turno === 1) botJogarCarta(bot1Cartas, setBot1Cartas);
-        else if (turno === 2) botJogarCarta(bot2Cartas, setBot2Cartas);
-        else if (turno === 3) botJogarCarta(bot3Cartas, setBot3Cartas);
-      }, 4000);
-
-      return () => clearTimeout(delay);
-    }
-  }, [turno]);
-
   const handleJogarCarta = (carta: Card): void => {
-    if (turno !== 0) return;
+    if (jogadorAtual !== 0) return;
     setJogadorCartas((prev) => prev.filter((c) => c.code !== carta.code));
     jogarCarta(carta);
-    setTurno(1);
   };
 
   const getManilhaValue = (vira: Card | null): string | null => {
@@ -243,10 +394,10 @@ export default function CampoJogo() {
 
   const determinarVencedorTurno = (
     cartasJogadas: Card[],
-    vira: Card | null
+    vira: Card | null,
+    jogadorInicial: number
   ): number => {
     const manilha = vira ? getManilhaValue(vira) : null;
-
     let vencedorIndex = 0;
     let cartaMaisForte = cartasJogadas[0];
 
@@ -271,115 +422,197 @@ export default function CampoJogo() {
       }
     });
 
-    setResultadosTurno((prev) => [...prev, vencedorIndex]);
-    return vencedorIndex;
+    const vencedorReal = (jogadorInicial + vencedorIndex) % 4;
+
+    console.log("Vencedor do turno:", vencedorReal, cartaMaisForte);
+
+    setResultadosTurno((prev) => [...prev, vencedorReal]);
+
+    return vencedorReal;
   };
 
   useEffect(() => {
-    if (cartasJogadas.length === 4 && vira) {
-      const vencedorTurno = determinarVencedorTurno(cartasJogadas, vira);
+    if (cartasJogadas.length === 4) {
+      const vencedorTurno = determinarVencedorTurno(
+        cartasJogadas,
+        vira,
+        jogadorAtual
+      );
+
+      setTimeout(() => {
+        setCartasJogadas([]);
+        setJogadorAtual(vencedorTurno);
+        setTurno((prev) => prev + 1);
+      }, 3000);
+    }
+  }, [cartasJogadas, vira]);
+
+  useEffect(() => {
+    if (jogadorAtual !== 0 && cartasJogadas.length < 4) {
+      const { equipe1Vitorias, equipe2Vitorias } =
+        calcularVitorias(resultadosTurno);
+
+      if (equipe1Vitorias === 2 || equipe2Vitorias === 2) return;
 
       const delay = setTimeout(() => {
-        if (
-          jogadorCartas.length === 0 &&
-          bot1Cartas.length === 0 &&
-          bot2Cartas.length === 0 &&
-          bot3Cartas.length === 0
-        ) {
-          setRodadaAtual((prev) => prev + 1);
-
-          const ordem = 1;
-          const trucada = "N";
-
-          const jogoId = jogos?.id;
-          const equipeVencedora = 3;
-          const codigoBaralho = deckId ?? undefined;
-
-          const dadosMao = {
-            ordem,
-            codigoBaralho,
-            trucada,
-            valor: 1,
-            jogoId,
-            equipeVencedora,
-          };
-
-          cadastroMao(dadosMao);
-
-          reiniciarRodada();
+        if (jogadorAtual === 1 && bot1Cartas.length > 0) {
+          botJogarCarta(bot1Cartas, setBot1Cartas);
+        } else if (jogadorAtual === 2 && bot2Cartas.length > 0) {
+          botJogarCarta(bot2Cartas, setBot2Cartas);
+        } else if (jogadorAtual === 3 && bot3Cartas.length > 0) {
+          botJogarCarta(bot3Cartas, setBot3Cartas);
         } else {
-          setTurno(vencedorTurno);
+          console.error(`Bot ${jogadorAtual} não tem cartas para jogar!`);
         }
-
-        setCartasJogadas([]);
-      }, 3000);
+      }, 4000);
 
       return () => clearTimeout(delay);
     }
-  }, [cartasJogadas, vira, jogadorCartas, bot1Cartas, bot2Cartas, bot3Cartas]);
+
+    if (jogadorAtual !== 0 && cartasJogadas.length === 0) {
+      console.log("Bot começando a rodada.");
+      if (jogadorAtual === 1 && bot1Cartas.length > 0) {
+        botJogarCarta(bot1Cartas, setBot1Cartas);
+      } else if (jogadorAtual === 2 && bot2Cartas.length > 0) {
+        botJogarCarta(bot2Cartas, setBot2Cartas);
+      } else if (jogadorAtual === 3 && bot3Cartas.length > 0) {
+        botJogarCarta(bot3Cartas, setBot3Cartas);
+      } else {
+        console.error(
+          `Bot ${jogadorAtual} não tem cartas para jogar no início da rodada!`
+        );
+      }
+    }
+  }, [
+    jogadorAtual,
+    cartasJogadas.length,
+    resultadosTurno,
+    bot1Cartas,
+    bot2Cartas,
+    bot3Cartas,
+  ]);
+
+  useEffect(() => {
+    const { equipe1Vitorias, equipe2Vitorias } =
+      calcularVitorias(resultadosTurno);
+
+    if (equipe1Vitorias === 2 || equipe2Vitorias === 2) {
+      console.log("Finalizando rodada...");
+      if (equipe1Vitorias === 2) {
+        setPontosEquipe1((prev) => prev + pontoDaRodada);
+        setVencedorRodada("Equipe 1");
+      } else if (equipe2Vitorias === 2) {
+        setPontosEquipe2((prev) => prev + pontoDaRodada);
+        setVencedorRodada("Equipe 2");
+      }
+      console.log("Estado antes de reiniciar:");
+      console.log({
+        jogadorCartas,
+        bot1Cartas,
+        bot2Cartas,
+        bot3Cartas,
+        vira,
+      });
+      reiniciarRodada();
+      console.log("Estado após reiniciar:");
+      console.log({
+        jogadorCartas,
+        bot1Cartas,
+        bot2Cartas,
+        bot3Cartas,
+        vira,
+      });
+      setResultadosTurno([]);
+    }
+  }, [resultadosTurno]);
+
+  useEffect(() => {
+    if (pontosEquipe1 >= 12) {
+      setJogoTerminado(true);
+      setMensagemVitoria("Equipe 1 venceu o jogo!");
+    } else if (pontosEquipe2 >= 12) {
+      setJogoTerminado(true);
+      setMensagemVitoria("Equipe 2 venceu o jogo!");
+    }
+  }, [pontosEquipe1, pontosEquipe2]);
 
   return (
     <SectionEstilizado>
-      <div className="divsEstilizadas" id="divEquipes">
-        <p>
-          Equipe 1: <strong>9</strong>
-        </p>
-
-        <div id="divValor">
-          <h4>Valor: {rodadaAtual}</h4>
+      {jogoTerminado ? (
+        <div className="vencedor">
+          <h2>{mensagemVitoria}</h2>
+          <button onClick={sairDaPartida}>Sair do jogo</button>
         </div>
-
-        <p>
-          Equipe 2: <strong>11</strong>
-        </p>
-      </div>
-
-      <div id="divPrincipal">
-        <div className="divsEstilizadas">
-          <CampoJogador
-            numeroJogador="J1"
-            nomeJogador={equipe?.descricao === "Equipe 1" ? "Você" : "Pedro"}
-            ativo={
-              (turno === 0 && equipe?.descricao === "Equipe 1") ||
-              (turno === 1 && equipe?.descricao === "Equipe 2")
-            }
-          />
-          <CampoJogador
-            numeroJogador="J3"
-            nomeJogador={equipe?.descricao === "Equipe 1" ? "Pedro" : "Murilo"}
-            ativo={
-              (turno === 1 && equipe?.descricao === "Equipe 1") ||
-              (turno === 2 && equipe?.descricao === "Equipe 2")
-            }
-          />
-        </div>
-
-        <CampoCartasJogo cartaVira={vira} cartasJogadas={cartasJogadas} />
-
-        <div className="divsEstilizadas">
-          <CampoJogador
-            numeroJogador="J4"
-            nomeJogador={equipe?.descricao === "Equipe 2" ? "Você" : "Murilo"}
-            ativo={
-              (turno === 0 && equipe?.descricao === "Equipe 2") ||
-              (turno === 3 && equipe?.descricao === "Equipe 1")
-            }
-          />
-          <CampoJogador
-            numeroJogador="J2"
-            nomeJogador={equipe?.descricao === "Equipe 2" ? "Maria" : "Maria"}
-            ativo={
-              (turno === 3 && equipe?.descricao === "Equipe 2") ||
-              (turno === 2 && equipe?.descricao === "Equipe 1")
-            }
-          />
-        </div>
-      </div>
-
-      <CampoCartasJogador
-        cartas={jogadorCartas}
-        onJogarCarta={handleJogarCarta}
-      />
+      ) : (
+        <>
+          <div className="divsEstilizadas" id="divEquipes">
+            <p>
+              Equipe 1: <strong>{pontosEquipe1}</strong>
+            </p>
+            <div id="divValor">
+              <h4>Valor: {pontoDaRodada}</h4>
+            </div>
+            <p>
+              Equipe 2: <strong>{pontosEquipe2}</strong>
+            </p>
+          </div>
+          <div id="divPrincipal">
+            <div className="divsEstilizadas">
+              <CampoJogador
+                numeroJogador="J1"
+                nomeJogador="Você"
+                ativo={jogadorAtual === 0}
+              />
+              <CampoJogador
+                numeroJogador="J3"
+                nomeJogador="Murilo"
+                ativo={jogadorAtual === 1}
+              />
+            </div>
+            {vira ? (
+              <CampoCartasJogo cartaVira={vira} cartasJogadas={cartasJogadas} />
+            ) : (
+              <p>Carregando cartas...</p>
+            )}
+            <div className="divsEstilizadas">
+              <CampoJogador
+                numeroJogador="J4"
+                nomeJogador="Heitor"
+                ativo={jogadorAtual === 3}
+              />
+              <CampoJogador
+                numeroJogador="J2"
+                nomeJogador="Maria"
+                ativo={jogadorAtual === 2}
+              />
+            </div>
+          </div>
+          {jogadorCartas.length > 0 ? (
+            <CampoCartasJogador
+              cartas={jogadorCartas}
+              onJogarCarta={handleJogarCarta}
+            />
+          ) : (
+            <p>Preparando cartas do jogador...</p>
+          )}
+          {vencedorRodada && (
+            <div className="vencedor">
+              <h3>{`Vencedor da rodada: ${vencedorRodada}`}</h3>
+            </div>
+          )}
+          {trucoResolvido && respostaTruco === "Aceito" ? (
+            <p>Bot aceitou o truco! A rodada continua com valor de 3 pontos.</p>
+          ) : trucoResolvido && respostaTruco === "Recusado" ? (
+            <p>Bot recusou o truco! A rodada foi encerrada.</p>
+          ) : jogadorAtual === 0 && !trucoSolicitado ? (
+            <BotaoTruco onClick={pedirTruco} disabled={trucoSolicitado}>
+              Pedir Truco
+            </BotaoTruco>
+          ) : (
+            trucoSolicitado && <p>Esperando resposta do Bot...</p>
+          )}
+        </>
+      )}
     </SectionEstilizado>
   );
 }

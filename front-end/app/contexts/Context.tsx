@@ -106,6 +106,7 @@ interface DadosMaoType {
   maos: DadosMao | null;
   setMaos: (maos: DadosMao | null) => void;
   cadastroMao: (dados: DadosMao) => Promise<void>;
+  alterarMao: (dados: DadosMao) => Promise<void>;
 }
 
 const DadosUsuarioContext = createContext<DadosUsuarioType>({
@@ -164,6 +165,7 @@ const DadosMaoContext = createContext<DadosMaoType>({
   maos: null,
   setMaos: () => {},
   cadastroMao: async () => {},
+  alterarMao: async () => {},
 });
 
 DadosUsuarioContext.displayName = "DadosUsuario";

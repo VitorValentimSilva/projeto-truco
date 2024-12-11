@@ -30,4 +30,22 @@ router.post("/", (req, res) => {
   ctrl.gravar(req, res);
 });
 
+router.patch("/", (req, res) => {
+  //#swagger.tags = ['Mão']
+  //#swagger.summary = 'Realiza a alteração parcial da mão'
+  /*  #swagger.requestBody = {
+          required: true,
+          content: {
+              "application/json": {
+                  schema: {
+                      $ref: "#/components/schemas/maoModel"
+                  }  
+              }
+          }
+      } 
+  */
+
+  ctrl.alteracaoParcial(req, res);
+});
+
 export default router;

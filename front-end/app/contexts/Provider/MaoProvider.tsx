@@ -12,7 +12,6 @@ export const MaoProvider = ({ children }: { children: React.ReactNode }) => {
 
   const cadastroMao = async (dadosMao: DadosMao) => {
     try {
-      console.log(dadosMao)
       let response;
       const url = `${linkBackEnd}/maos/`;
 
@@ -35,12 +34,36 @@ export const MaoProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const alterarMao = async (dadosMao: DadosMao) => {
+    try {
+      console.log(dadosMao)
+      let response;
+      const url = `${linkBackEnd}/maos/`;
+
+      response = await axios.patch(url, dadosMao);
+
+      console.log("Dados enviados com sucesso:", response.data);
+    } catch (error: unknown) {
+      console.error("Erro:", error);
+
+      if (axios.isAxiosError(error)) {
+        setMensagemErro(
+          error.response?.data?.msg ||
+            "Erro ao enviar os dados. Tente novamente mais tarde."
+        );
+      } else {
+        setMensagemErro("Erro desconhecido. Tente novamente.");
+      }
+    }
+  };
+
   return (
     <useContexts.DadosMaoContext.Provider
       value={{
         maos,
         setMaos,
         cadastroMao,
+        alterarMao,
       }}
     >
       {children}

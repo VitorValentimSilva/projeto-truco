@@ -34,6 +34,19 @@ export default class MaoRepository extends BaseRepository {
     }
   }
 
+  async alteracaoParcial(entidade) {
+    let sql =
+      "UPDATE tb_mao SET mao_ordem = coalesce(?, mao_ordem), mao_codigobaralho = coalesce(?, mao_codigobaralho), mao_trucada = coalesce(?, mao_trucada), mao_valor = coalesce(?, mao_valor), jog_id = coalesce(?, jog_id), eqp_vencedora = coalesce(?, eqp_vencedora) WHERE mao_id = ?";
+    let valores = [entidade.ordem, entidade.codigoBaralho, entidade.trucada, entidade.valor, entidade.jogoId, entidade.equipeVencedora, entidade.id];
+    let result = await this.db.ExecutaComandoNonQuery(sql, valores);
+
+    if (result) {
+      return await this.obter(entidade.id);
+    }
+
+    return null;
+  }
+
   toMap(rows) {
     if (rows && typeof rows.length == "number") {
       let lista = [];

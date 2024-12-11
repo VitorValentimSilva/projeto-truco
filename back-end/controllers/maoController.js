@@ -76,4 +76,52 @@ export default class MaoController {
       res.status(500).json({ msg: ex.message });
     }
   }
+
+  async alteracaoParcial(req, res) {
+    try {
+      let {
+        id,
+        ordem,
+        codigoBaralho,
+        trucada,
+        valor,
+        jogoId,
+        equipeVencedora,
+      } = req.body;
+
+      if (
+        id &&
+        (ordem !== undefined ||
+          codigoBaralho !== undefined ||
+          trucada !== undefined ||
+          valor !== undefined ||
+          (jogoId > 0 && equipeVencedora > 0))
+      ) {
+        let entidade = new MaoEntity(
+          id,
+          ordem,
+          codigoBaralho,
+          trucada,
+          valor,
+          jogoId,
+          equipeVencedora
+        );
+        let repo = new MaoRepository();
+        let maoAtualizado = await repo.alteracaoParcial(entidade);
+
+        if (maoAtualizado) {
+          res.status(200).json({
+            msg: "Alteração parcial realizada com sucesso!",
+            mao: maoAtualizado,
+          });
+        } else {
+          throw new Error("Erro ao executar a atualização no banco de dados");
+        }
+      } else {
+        res.status(400).json({ msg: "Informe os parâmetros corretamente!" });
+      }
+    } catch (ex) {
+      res.status(500).json({ msg: ex.message });
+    }
+  }
 }
