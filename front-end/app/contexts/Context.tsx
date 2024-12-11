@@ -109,6 +109,18 @@ interface DadosMaoType {
   alterarMao: (dados: DadosMao) => Promise<void>;
 }
 
+export interface DadosRodada {
+  id?: number;
+  maoId?: number;
+  equipeVencedora?: number;
+}
+
+interface DadosRodadaType {
+  rodadas: DadosRodada | null;
+  setRodadas: (rodadas: DadosRodada | null) => void;
+  cadastroRodada: (dados: DadosRodada) => Promise<void>;
+}
+
 const DadosUsuarioContext = createContext<DadosUsuarioType>({
   usuario: null,
   setUsuario: () => {},
@@ -168,6 +180,12 @@ const DadosMaoContext = createContext<DadosMaoType>({
   alterarMao: async () => {},
 });
 
+const DadosRodadaContext = createContext<DadosRodadaType>({
+  rodadas: null,
+  setRodadas: () => {},
+  cadastroRodada: async () => {},
+});
+
 DadosUsuarioContext.displayName = "DadosUsuario";
 AutenticacaoContext.displayName = "Autenticacao";
 DadosSalaContext.displayName = "DadosSala";
@@ -176,6 +194,7 @@ DadosJogoContext.displayName = "DadosJogo";
 DadosParticipanteContext.displayName = "DadosParticipante";
 SalaJogoContext.displayName = "SalaJogos";
 DadosMaoContext.displayName = "DadosMao";
+DadosRodadaContext.displayName = "DadosRodadas";
 
 const Contexts = {
   DadosUsuarioContext,
@@ -186,6 +205,7 @@ const Contexts = {
   DadosParticipanteContext,
   SalaJogoContext,
   DadosMaoContext,
+  DadosRodadaContext,
 };
 
 export default Contexts;

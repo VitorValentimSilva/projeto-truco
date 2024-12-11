@@ -12,6 +12,7 @@ import routerEquipe from "./routes/equipeRoute.js";
 import routerJogo from "./routes/jogoRoute.js";
 import routerParticipante from "./routes/participanteRoute.js";
 import routerMao from "./routes/maoRoute.js";
+import routerRodada from "./routes/rodadaRoute.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -34,6 +35,7 @@ app.use("/equipes", routerEquipe);
 app.use("/jogos", routerJogo);
 app.use("/participantes", routerParticipante);
 app.use("/maos", routerMao);
+app.use("/rodadas", routerRodada);
 
 app.listen(port, function () {
   console.log("Servidor Web em Funcionamento!");

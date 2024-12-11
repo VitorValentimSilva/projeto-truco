@@ -8,6 +8,7 @@ import {
   useDadosJogoContext,
   useDadosMaoContext,
   useDadosParticipanteContext,
+  useDadosRodadaContext,
 } from "@/app/contexts/useContext";
 import { useRouter } from "next/navigation";
 
@@ -175,6 +176,7 @@ export default function CampoJogo() {
   const [vencedorRodada, setVencedorRodada] = useState<string | null>(null);
   const { equipe } = useDadosEquipeContext();
   const { cadastroMao, alterarMao, maos } = useDadosMaoContext();
+  const { cadastroRodada } = useDadosRodadaContext();
   const [pontosEquipe1, setPontosEquipe1] = useState<number>(0);
   const [pontosEquipe2, setPontosEquipe2] = useState<number>(0);
   const [carregando, setCarregando] = useState(true);
@@ -306,27 +308,6 @@ export default function CampoJogo() {
       setBot3Cartas(bot3);
 
       console.log("Cartas distribuídas com sucesso!");
-
-      const { equipe1Vitorias, equipe2Vitorias } =
-        calcularVitorias(resultadosTurno);
-      const equipeVencedora = equipe1Vitorias > equipe2Vitorias ? 3 : 4;
-
-      console.log(
-        `Equipe vencedora da rodada: ${
-          equipeVencedora === 3 ? "Equipe 1" : "Equipe 2"
-        }`
-      );
-
-      const dadosMao = {
-        ordem: 1,
-        codigoBaralho: novoDeckId,
-        trucada: trucoSolicitado ? "S" : "N",
-        valor: jogador.reduce((acc, carta) => acc + getCardValue(carta), 0),
-        jogoId: jogos?.id || 0,
-        equipeVencedora,
-      };
-
-      await cadastroMao(dadosMao);
     } catch (error) {
       console.error("Erro ao reiniciar rodada:", error);
     }
@@ -498,6 +479,37 @@ export default function CampoJogo() {
 
     if (equipe1Vitorias === 2 || equipe2Vitorias === 2) {
       console.log("Finalizando rodada...");
+
+      const { equipe1Vitorias, equipe2Vitorias } =
+        calcularVitorias(resultadosTurno);
+      const equipeVencedora = equipe1Vitorias > equipe2Vitorias ? 3 : 4;
+
+      console.log(
+        `Equipe vencedora da rodada: ${
+          equipeVencedora === 3 ? "Equipe 1" : "Equipe 2"
+        }`
+      );
+
+      const dadosMao = {
+        ordem: 1,
+        codigoBaralho: deckId ? deckId : undefined,
+        trucada: trucoSolicitado ? "S" : "N",
+        valor: jogadorCartas.reduce(
+          (acc, carta) => acc + getCardValue(carta),
+          0
+        ),
+        jogoId: jogos?.id || 0,
+        equipeVencedora,
+      };
+
+      cadastroMao(dadosMao);
+
+      const dadosRodada = {
+        maoId: maos?.id,
+        equipeVencedora,
+      };
+
+      cadastroRodada(dadosRodada);
       if (equipe1Vitorias === 2) {
         setPontosEquipe1((prev) => prev + pontoDaRodada);
         setVencedorRodada("Equipe 1");

@@ -33,6 +33,10 @@ export const useDadosMaoContext = () => {
   return useContext(Contexts.DadosMaoContext);
 };
 
+export const useDadosRodadaContext = () => {
+  return useContext(Contexts.DadosRodadaContext);
+};
+
 const useContexts = {
   useDadosUsuarioContext,
   useAutenticacaoContext,
@@ -42,6 +46,7 @@ const useContexts = {
   useDadosParticipanteContext,
   useSalaJogoContext,
   useDadosMaoContext,
+  useDadosRodadaContext,
 };
 
 export default useContexts;
