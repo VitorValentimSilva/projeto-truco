@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 
 const SectionEstilizado = styled.section`
+  min-height: 100vh;
   background-color: #0d5c1d;
   border: 5px solid #2d1810;
   border-radius: 10px;
@@ -73,6 +74,68 @@ const BotaoTruco = styled.button`
     background-color: #ccc;
     color: #666;
     cursor: not-allowed;
+  }
+`;
+
+const VencedorContainer = styled.div`
+  background-color: #1a1a2e;
+  border: 2px solid #16213e;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  text-align: center;
+  color: #eaeaea;
+  max-width: 400px;
+  margin: 20px auto;
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #f5a623;
+  }
+
+  button {
+    background-color: #f5a623;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+
+    &:hover {
+      background-color: #d4881c;
+      transform: scale(1.05);
+    }
+
+    &:active {
+      background-color: #b36c15;
+      transform: scale(0.95);
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 5px 2px rgba(245, 166, 35, 0.5);
+    }
+  }
+`;
+
+const MensagemTruco = styled.p`
+  background-color: #f4f4f4;
+  color: #333;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 10px 0;
+  text-align: center;
+  line-height: 1.5;
+
+  strong {
+    color: #d97706;
   }
 `;
 
@@ -236,13 +299,6 @@ export default function CampoJogo() {
       } else {
         console.log("Bot aceitou o truco. Valor da rodada aumenta para 3.");
         setPontoDaRodada(3);
-
-        const dadosMao = {
-          id: maos?.id,
-          trucada: "S",
-        };
-
-        alterarMao(dadosMao);
       }
 
       setTrucoResolvido(true);
@@ -551,10 +607,10 @@ export default function CampoJogo() {
   return (
     <SectionEstilizado>
       {jogoTerminado ? (
-        <div className="vencedor">
+        <VencedorContainer>
           <h2>{mensagemVitoria}</h2>
           <button onClick={sairDaPartida}>Sair do jogo</button>
-        </div>
+        </VencedorContainer>
       ) : (
         <>
           <div className="divsEstilizadas" id="divEquipes">
@@ -607,21 +663,23 @@ export default function CampoJogo() {
           ) : (
             <p>Preparando cartas do jogador...</p>
           )}
-          {vencedorRodada && (
-            <div className="vencedor">
-              <h3>{`Vencedor da rodada: ${vencedorRodada}`}</h3>
-            </div>
-          )}
           {trucoResolvido && respostaTruco === "Aceito" ? (
-            <p>Bot aceitou o truco! A rodada continua com valor de 3 pontos.</p>
+            <MensagemTruco>
+              🎉 Bot aceitou o truco! A rodada continua com valor de{" "}
+              <strong>3 pontos</strong>.
+            </MensagemTruco>
           ) : trucoResolvido && respostaTruco === "Recusado" ? (
-            <p>Bot recusou o truco! A rodada foi encerrada.</p>
+            <MensagemTruco>
+              ❌ Bot recusou o truco! A rodada foi encerrada.
+            </MensagemTruco>
           ) : jogadorAtual === 0 && !trucoSolicitado ? (
             <BotaoTruco onClick={pedirTruco} disabled={trucoSolicitado}>
               Pedir Truco
             </BotaoTruco>
           ) : (
-            trucoSolicitado && <p>Esperando resposta do Bot...</p>
+            trucoSolicitado && (
+              <MensagemTruco>⏳ Aguardando resposta do Bot...</MensagemTruco>
+            )
           )}
         </>
       )}

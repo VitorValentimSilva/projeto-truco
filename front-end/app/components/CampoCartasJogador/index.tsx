@@ -5,6 +5,7 @@ const DivEstilizada = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-evenly;
+  flex-wrap: wrap;
   width: 100%;
 
   p {

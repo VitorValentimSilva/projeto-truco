@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const MainEstilizado = styled.main`
-  height: 100vh;
+  min-height: 100vh;
   background-color: #14532d;
   display: flex;
   align-items: center;
@@ -106,7 +106,7 @@ export default function EscolherEquipe() {
         });
 
         setDataFormatada(dataAtualFormatada);
-        
+
         const dadosParticipante = {
           id: 0,
           dtEntrada: dataAtual,

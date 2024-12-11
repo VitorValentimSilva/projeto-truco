@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import styled from "styled-components";
 
 const MainEstilizado = styled.main`
-  height: 100vh;
+  min-height: 100vh;
   background-color: #f0f1f3;
   display: flex;
   flex-direction: column;

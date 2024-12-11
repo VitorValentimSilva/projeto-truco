@@ -5,7 +5,7 @@ import PaginaBase from "@/app/pageBase";
 import styled from "styled-components";
 
 const MainEstilizado = styled.main`
-  height: 100vh;
+  min-height: 100vh;
   background-color: #1a1a1a;
   background-image: radial-gradient(
     rgba(255, 255, 255, 0.1) 1px,
